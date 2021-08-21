@@ -2,19 +2,18 @@ import streamlit as st
 import requests
 import datetime
 import json
+import pandas as pd
 '''
-# TaxiFareModel - How much is a fair price?
+# TaxiFareModel - What's a fair price for the fare?
 '''
 
 st.markdown('''
-Ever been to New York City, riding a cab and wondering how much you should actually pay for your ride?
+Ever been to New York City, riding a cab, wondering how much you should actually pay for your ride?
 
 This website provides an accurate prediction of how much a taxiride in New York should cost.
 ''')
 '''
 ## To make a prediction, I have to ask you for some information:
-
-- Sorry to ask, but:
 '''
 date = st.date_input('Whats your current data?', datetime.date.today())
 time = st.time_input('Whats your current time?', datetime.datetime.now())
@@ -25,7 +24,7 @@ dropoff_lon = st.number_input('Whats your dropoff longitude?', value=-73.9854)
 dropoff_lat = st.number_input('Whats your dropoff latitude?', value=40.7488)
 passenger_count = st.number_input('How many people are you?', min_value=0, max_value=10, value=1)
 '''
-## Thank you very much. Let me now make a prediction ...
+## Thank you very much. Click the button to make the prediction ...
 '''
 url = 'https://taxifare.lewagon.ai/predict'
 
@@ -37,6 +36,17 @@ params = {
     'dropoff_longitude': str(dropoff_lon),
     'dropoff_latitude': str(dropoff_lat),
     'passenger_count': str(passenger_count)}
+
+
+@st.cache
+def get_map_data():
+    print('get_map_data called')
+    return pd.DataFrame({'lat': [pickup_lat, dropoff_lat],
+                         'lon': [pickup_lon, dropoff_lon]})
+st.map(get_map_data())
+
+
+
 
 if st.checkbox('Make prediction'):
     import time
@@ -52,11 +62,11 @@ if st.checkbox('Make prediction'):
     latest_iteration = st.empty()
     bar = st.progress(0)
 
-    for i in range(10):
+    for i in range(100):
         # Update the progress bar with each iteration.
-        latest_iteration.text(f'Iteration {i+1}')
+        #latest_iteration.text('Calculating...')
         bar.progress(i + 1)
-        time.sleep(0.05)
+        time.sleep(0.01)
 
-    '...and now we\'re done!'
-    st.write(prediction)
+    '...and we\'re done!'
+    f'Fare should cost no more than {round(prediction,2)}$.'
